@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Registrar Abrigo</title>
+</head>
+<body>
+    <div class="main-login">
+        <div class="card-login">
+            <h1>Registrar Abrigo</h1>
+            <form id="shelterRegistrationForm" action="/shelters" method="POST">
+                <div class="textfield">
+                    <label for="admin_name">Nome do Administrador</label>
+                    <input type="text" name="admin_name" placeholder="Nome completo" required>
+                </div>
+                <div class="textfield">
+                    <label for="admin_cpf">CPF</label>
+                    <input type="text" name="admin_cpf" placeholder="Somente números" required pattern="\d{11}">
+                </div>
+                <div class="textfield">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" placeholder="Digite seu email" required>
+                </div>
+                <div class="textfield">
+                    <label for="phone">Telefone</label>
+                    <input type="tel" name="phone" placeholder="Digite seu telefone" required pattern="\d{10,11}">
+                </div>
+                <div class="textfield">
+                    <label for="address">Endereço do Abrigo</label>
+                    <input type="text" name="address" placeholder="Rua, Bairro, Cidade, Estado" required>
+                </div>
+                <div class="textfield">
+                    <label for="shelter_name">Nome do Abrigo</label>
+                    <input type="text" name="shelter_name" placeholder="Nome do abrigo" required>
+                </div>
+                <div class="textfield">
+                    <label for="capacity">Capacidade</label>
+                    <input type="number" name="capacity" placeholder="Número de pessoas" required min="1">
+                </div>
+                <div class="radio-group">
+                    <label>Recebe Pets?</label>
+                    <div class="radio-option">
+                        <label>
+                            <input type="radio" name="pets" value="yes" required>
+                            <span>Sim</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="pets" value="no" required>
+                            <span>Não</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="radio-group">
+                    <label>Abrigo só para mulheres e crianças?</label>
+                    <div class="radio-option">
+                        <label>
+                            <input type="radio" name="women_children_only" value="yes" required>
+                            <span>Sim</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="women_children_only" value="no" required>
+                            <span>Não</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="textfield">
+                    <label for="password">Senha</label>
+                    <input type="password" name="password" placeholder="Crie uma senha" required minlength="6">
+                </div>
+                <button type="submit" class="btn-login">Registrar Abrigo</button>
+            </form>
+            <script>
+                document.getElementById("shelterRegistrationForm").addEventListener("submit", function(e) {
+                    const cpf = this.admin_cpf.value.trim();
+                    const password = this.password.value.trim();
+                    if (!/^\d{11}$/.test(cpf)) {
+                        e.preventDefault();
+                        alert("CPF inválido. Por favor, digite 11 números.");
+                    }
+                    if (password.length < 6) {
+                        e.preventDefault();
+                        alert("A senha deve ter no mínimo 6 caracteres.");
+                    }
+                });
+            </script>
+        </div>
+    </div>
+</body>
+</html>

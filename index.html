@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Login</title>
+</head>
+<body>
+    <div class="main-login">
+        <div class="left-login">
+            <h1>Encontre um abrigo próximo e faça parte da mudança</h1>
+            <img src="pet.svg" class="left-login-image" alt="pet animação">
+        </div>
+        <div class="right-login">
+            <div class="card-login">
+                <h1>Login</h1>
+                <form id="loginForm" action="/login" method="POST">
+                    <div class="textfield">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" placeholder="Digite seu email" required>
+                    </div>
+                    <div class="textfield">
+                        <label for="password">Senha</label>
+                        <input type="password" name="password" placeholder="Digite sua senha" required>
+                    </div>
+                    <button type="submit" class="btn-login">Login</button>
+                </form>
+                <p class="link-register">
+                    Não possui cadastro? <a href="register.html">Registre seu abrigo aqui</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            const email = this.email.value.trim();
+            const password = this.password.value.trim();
+            
+            if (!email || !password) {
+                e.preventDefault(); // Evita o envio do formulário
+                alert("Por favor, preencha todos os campos.");
+            }
+        });
+    </script>
+</body>
+</html>
