@@ -1,9 +1,11 @@
 import os
 
 from flask import Flask, jsonify, request, session
+from flask_cors import CORS
 
 app = Flask(__name__)
-app.secret_key = os.getenv('CHAVE')
+CORS(app, origins='*')
+app.secret_key = os.getenv('CHAVE') or 'bad-secret-key'
 
 #    |-LOGIN-|
 @app.route('/login', methods=['POST'])

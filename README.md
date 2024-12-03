@@ -10,7 +10,8 @@
 ## Running locally
 - Backend
   - Setup database: run `python Backend/Banco/create_tables.py`
-  - Start server: run `pyhton Backend/Rotas/routes.py`. Will launch at **localhost:5000**
+  - Start server: run `python Backend/Rotas/routes.py`. Will launch at **localhost:5000**
+  - API uses Cors to enable Front-end to fetch data
 
 - Frontend
   - Start app: run `python Frontend/dist_server.py`. Will launch at **localhost:3000**
