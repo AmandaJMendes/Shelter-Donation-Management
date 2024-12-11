@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Home</title>
+</head>
+<body>
+    <div class="main-home">
+        <div class="header-home">
+            <h1>Bem-vindo! Explore os abrigos disponíveis</h1>
+        </div>
+        <div class="content-home">
+            <div class="sidebar">
+                <h2>Selecionar Abrigo</h2>
+                <div class="search-container">
+                    <input type="text" id="search-bar" placeholder="Digite para buscar..." class="search-bar">
+                    <div id="dropdown-options" class="dropdown-options">
+                       
+                    </div>
+                </div>
+                <button id="view-button" class="btn-view" disabled>Ver Informações</button>
+            </div>
+            
+            <div class="shelter-info hidden">
+                <h2>Informações do Abrigo</h2>
+                <p><strong>Email:</strong> <span id="shelter-email">-</span></p>
+                <p><strong>Telefone:</strong> <span id="shelter-phone">-</span></p>
+                <p><strong>Endereço:</strong> <span id="shelter-address">-</span></p>
+                <p><strong>Capacidade:</strong> <span id="shelter-capacity">-</span></p>
+                <p><strong>Recebe Pets:</strong> <span id="shelter-pets">-</span></p>
+                <p><strong>Somente Mulheres e Crianças:</strong> <span id="shelter-women-children">-</span></p>
+                <div class="actions">
+                    <button id="add-item-button" class="btn-action" disabled>Adicionar Itens</button>
+                    <button id="transfer-button" class="btn-action" disabled>Transferências</button>
+                </div>
+            </div>
+        </div>
+        <div class="donation-image">
+            <img src="donation.svg" alt="Donation Illustration">
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
+
