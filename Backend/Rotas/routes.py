@@ -186,7 +186,7 @@ def read_itens():
 @app.route("/itens/<int:id>", methods=["PUT"])
 def update_item(id):
     data = request.json
-    query = f"UPDATE Itens SET nome_item='{data['nome_item']}', categoria='{data['categoria']}', perecivel={data['perecivel']}, quantidade={data['quantidade']}, id_abrigo={data['id_abrigo']} WHERE id={id}"  # noqa: E501
+    query = f"UPDATE Itens SET nome_item='{data['nome_item']}', categoria='{data['categoria']}', perecivel={data['perecivel']}, quantidade={data['quantidade']}, id_abrigo={data['id_abrigo']} WHERE id={id}"
     return jsonify({"query": query})
 
 
