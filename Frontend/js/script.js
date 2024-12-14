@@ -1,4 +1,4 @@
-//--- Informações dummy dos abrigos
+//--- Dados dummy dos abrigos
 const shelters = [
     { id: 'abrigo1', name: 'Abrigo Esperança', email: 'esperanca@mail.com', phone: '1234-5678', address: 'Rua da Paz, 123', capacity: 50, pets: 'Sim', womenChildren: 'Sim' },
     { id: 'abrigo2', name: 'Lar dos Anjos', email: 'anjos@mail.com', phone: '2345-6789', address: 'Avenida Harmonia, 456', capacity: 30, pets: 'Não', womenChildren: 'Não' },
@@ -6,13 +6,25 @@ const shelters = [
     { id: 'abrigo4', name: 'Casa da Solidariedade', email: 'solidariedade@mail.com', phone: '4567-8901', address: 'Alameda da Luz, 12', capacity: 40, pets: 'Não', womenChildren: 'Sim' },
     { id: 'abrigo5', name: 'Lar da Harmonia', email: 'harmonia@mail.com', phone: '5678-9012', address: 'Rua Estrela, 345', capacity: 25, pets: 'Sim', womenChildren: 'Não' },
     { id: 'abrigo6', name: 'Refúgio do Amor', email: 'amor@mail.com', phone: '6789-0123', address: 'Rua do Sol, 678', capacity: 15, pets: 'Não', womenChildren: 'Sim' },
-    { id: 'abrigo7', name: 'Abrigo da Esperança Viva', email: 'esperancaviva@mail.com', phone: '7890-1234', address: 'Avenida da Vida, 89', capacity: 35, pets: 'Sim', womenChildren: 'Sim' },
-    { id: 'abrigo8', name: 'Casa da Alegria', email: 'alegria@mail.com', phone: '8901-2345', address: 'Rua Felicidade, 56', capacity: 20, pets: 'Sim', womenChildren: 'Não' },
-    { id: 'abrigo9', name: 'Lar dos Corações Unidos', email: 'coracoesunidos@mail.com', phone: '9012-3456', address: 'Praça União, 78', capacity: 50, pets: 'Sim', womenChildren: 'Sim' },
-    { id: 'abrigo10', name: 'Refúgio do Sol', email: 'sol@mail.com', phone: '0123-4567', address: 'Avenida Solar, 90', capacity: 30, pets: 'Não', womenChildren: 'Não' },
-   
 ];
 
+//--- Dados dummy de itens dos abrigos
+const items = {
+    abrigo1: [
+        { name: 'Arroz', category: 'Comida', perishable: true, quantity: 50 },
+        { name: 'Feijão', category: 'Comida', perishable: true, quantity: 40 },
+    ],
+    abrigo2: [
+        { name: 'Cobertores', category: 'Vestuário', perishable: false, quantity: 20 },
+        { name: 'Fraldas', category: 'Higiene', perishable: true, quantity: 100 },
+    ],
+    abrigo3: [],
+};
+
+//--- Simula se o usuário está logado
+const isLoggedIn = false; // Alterar para false para testar comportamento sem login
+
+//--- Seletores do DOM
 const searchBar = document.getElementById('search-bar');
 const dropdownOptions = document.getElementById('dropdown-options');
 const viewButton = document.getElementById('view-button');
@@ -26,8 +38,8 @@ const shelterCapacity = document.getElementById('shelter-capacity');
 const shelterPets = document.getElementById('shelter-pets');
 const shelterWomenChildren = document.getElementById('shelter-women-children');
 
-
-let isInfoVisible = false;
+const addItemButton = document.getElementById('add-item-button');
+const transferButton = document.getElementById('transfer-button');
 
 //--- Exibe todas as opções quando o foco estiver na barra de pesquisa
 searchBar.addEventListener('focus', () => {
@@ -73,26 +85,54 @@ function renderOptions(options) {
     }
 }
 
+//--- Renderiza itens do abrigo selecionado
+function renderItems(shelterId) {
+    const itemsTableBody = document.querySelector('#shelter-items tbody');
+    itemsTableBody.innerHTML = ''; // Limpa a tabela
 
+    const shelterItems = items[shelterId] || [];
+    if (shelterItems.length === 0) {
+        itemsTableBody.innerHTML = '<tr><td colspan="4">Nenhum item encontrado</td></tr>';
+        return;
+    }
+
+    shelterItems.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.category}</td>
+            <td>${item.perishable ? 'Sim' : 'Não'}</td>
+            <td>${item.quantity}</td>
+        `;
+        itemsTableBody.appendChild(row);
+    });
+}
+
+//--- Seleciona um abrigo
 function selectShelter(shelter) {
     searchBar.value = shelter.name;
     dropdownOptions.style.display = 'none';
     viewButton.disabled = false;
 
-    
     shelterEmail.textContent = shelter.email;
     shelterPhone.textContent = shelter.phone;
     shelterAddress.textContent = shelter.address;
     shelterCapacity.textContent = shelter.capacity;
     shelterPets.textContent = shelter.pets;
     shelterWomenChildren.textContent = shelter.womenChildren;
+
+    renderItems(shelter.id); // Exibe os itens do abrigo selecionado
+
+    // Habilita botões se o usuário estiver logado
+    addItemButton.disabled = !isLoggedIn;
+    transferButton.disabled = !isLoggedIn;
 }
 
-//--- Exibe o bloco de informação dps da primeira pesquisa, estava usadno para ajustar a imagem
+//--- Exibe o bloco de informação após a primeira pesquisa
 viewButton.addEventListener('click', () => {
     if (shelterInfo.classList.contains('hidden')) {
-        shelterInfo.classList.remove('hidden'); 
-        donationImage.style.display = 'flex'; 
-        document.querySelector('.content-home').style.flexDirection = 'row'; 
+        shelterInfo.classList.remove('hidden');
+        donationImage.style.display = 'flex';
+        document.querySelector('.content-home').style.flexDirection = 'row';
     }
 });
