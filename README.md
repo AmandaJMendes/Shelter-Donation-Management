@@ -14,6 +14,6 @@
   - API uses Cors to enable Front-end to fetch data
 
 - Frontend
-  - Start app: run `python Frontend/dist_server.py`. Will launch at **localhost:3000**
-  - The `index.html` file is served by default. 
-  - To acesses other `.html`, set the url to that file name. Ex.: `localhost:3000/register`
+  - Start app: run `python Frontend/server.py`. Will launch at **localhost:3000**
+  - The `home.html` file is served by default.
+  - To acesses other `.html`, set the url to that file name. Ex.: `localhost:3000/index.html`
