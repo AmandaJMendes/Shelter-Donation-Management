@@ -5,47 +5,53 @@ from flask_cors import CORS
 from sqlalchemy import MetaData, create_engine
 
 app = Flask(__name__)
-CORS(app, origins='*')
-app.secret_key = os.getenv('CHAVE') or 'bad-secret-key'
+CORS(app, origins="*")
+app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
-DATABASE_URI = 'sqlite:///Backend/Banco/instance/shelter.db'
+DATABASE_URI = "sqlite:///Backend/Banco/instance/shelter.db"
 engine = create_engine(DATABASE_URI)
 metadata = MetaData()
 
 metadata.reflect(bind=engine)
 
-shelter_table = metadata.tables['shelter']  
-item_table = metadata.tables['item']       
+shelter_table = metadata.tables["shelter"]
+item_table = metadata.tables["item"]
+
 
 #    |-LOGIN-|
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    email = data.get('email')
-    senha = data.get('password')
+    email = data.get("email")
+    senha = data.get("password")
 
     if not email or not senha:
-        return jsonify({"logado": False, "message": "Campos de Email e senha são obrigatórios"}), 400
-    
+        return (
+            jsonify(
+                {"logado": False, "message": "Campos de Email e senha são obrigatórios"}
+            ),
+            400,
+        )
+
     user_id = busca_userid_no_banco(email, senha)
     if user_id:
-        session['user_id'] = user_id
-        return jsonify({'logado': True})
+        session["user_id"] = user_id
+        return jsonify({"logado": True})
     else:
-        return jsonify({'logado': False, "message": "Usuário ou senha inválidos"}), 401
-    
+        return jsonify({"logado": False, "message": "Usuário ou senha inválidos"}), 401
+
+
 #    |-LOGOUT-|
-@app.route('/logout', methods=['POST'])
+@app.route("/logout", methods=["POST"])
 def logout():
-    session.pop('user_id', None) 
+    session.pop("user_id", None)
     return jsonify({"logado": False})
 
 
-
 #    |-Verificando user da sessão atual-|
-@app.route('/sessao', methods=['GET'])
+@app.route("/sessao", methods=["GET"])
 def sessao():
-    user_id = session.get('user_id')
+    user_id = session.get("user_id")
     if user_id:
         return jsonify({"logado": True, "user_id": user_id})
     else:
@@ -63,10 +69,12 @@ def busca_userid_no_banco(email, senha):
         return usuario["id"]
     return None
 
+
 #   |--|
 
+
 #    |-Listar infos dos abrigos-|
-@app.route('/listar_abrigos', methods=['GET'])
+@app.route("/listar_abrigos", methods=["GET"])
 def listar_abrigos():
     try:
         connection = engine.connect()
@@ -87,7 +95,7 @@ def listar_abrigos():
                 "shelter_name": row.shelter_name,
                 "capacity": row.capacity,
                 "accepts_pets": row.accepts_pets,
-                "women_and_children_only": row.women_and_children_only
+                "women_and_children_only": row.women_and_children_only,
             }
             for row in result
         ]
@@ -98,11 +106,12 @@ def listar_abrigos():
     except Exception as e:
         return jsonify({"error": "Erro ao listar abrigos", "message": str(e)}), 500
 
+
 #    |-Listar itens de um abrigo-|
-@app.route('/listar_itens', methods=['GET'])
+@app.route("/listar_itens", methods=["GET"])
 def listar_itens():
     try:
-        user_id = session.get('user_id')
+        user_id = session.get("user_id")
         # user_id = 1
         if not user_id:
             return jsonify({"error": "User não autenticado."}), 401
@@ -118,7 +127,7 @@ def listar_itens():
                 "category": row.category,
                 "perishable": row.perishable,
                 "quantity": row.quantity,
-                "shelter_id": row.shelter_id
+                "shelter_id": row.shelter_id,
             }
             for row in result
         ]
@@ -130,77 +139,89 @@ def listar_itens():
         return jsonify({"error": "Erro ao listar itens", "message": str(e)}), 500
 
 
-
 #   |-CRUD-|
 
+
 # CRUD for Abrigos
-@app.route('/abrigos', methods=['POST'])
+@app.route("/abrigos", methods=["POST"])
 def create_abrigo():
     data = request.json
-    query = f"INSERT INTO Abrigos (nome_completo_administrador, cpf_administrador, email, telefone, endereco, nome_abrigo, capacidade, recebe_pets, so_mulheres_criancas, senha) VALUES ('{data['nome_completo_administrador']}', '{data['cpf_administrador']}', '{data['email']}', '{data['telefone']}', '{data['endereco']}', '{data['nome_abrigo']}', {data['capacidade']}, {data['recebe_pets']}, {data['so_mulheres_criancas']}, '{data['senha']}')"
+    query = f"INSERT INTO Abrigos (nome_completo_administrador, cpf_administrador, email, telefone, endereco, nome_abrigo, capacidade, recebe_pets, so_mulheres_criancas, senha) VALUES ('{data['nome_completo_administrador']}', '{data['cpf_administrador']}', '{data['email']}', '{data['telefone']}', '{data['endereco']}', '{data['nome_abrigo']}', {data['capacidade']}, {data['recebe_pets']}, {data['so_mulheres_criancas']}, '{data['senha']}')"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/abrigos', methods=['GET'])
+
+@app.route("/abrigos", methods=["GET"])
 def read_abrigos():
     query = "SELECT * FROM Abrigos"
     return jsonify({"query": query})
 
-@app.route('/abrigos/<int:id>', methods=['PUT'])
+
+@app.route("/abrigos/<int:id>", methods=["PUT"])
 def update_abrigo(id):
     data = request.json
-    query = f"UPDATE Abrigos SET nome_completo_administrador='{data['nome_completo_administrador']}', cpf_administrador='{data['cpf_administrador']}', email='{data['email']}', telefone='{data['telefone']}', endereco='{data['endereco']}', nome_abrigo='{data['nome_abrigo']}', capacidade={data['capacidade']}, recebe_pets={data['recebe_pets']}, so_mulheres_criancas={data['so_mulheres_criancas']}, senha='{data['senha']}' WHERE id={id}"
+    query = f"UPDATE Abrigos SET nome_completo_administrador='{data['nome_completo_administrador']}', cpf_administrador='{data['cpf_administrador']}', email='{data['email']}', telefone='{data['telefone']}', endereco='{data['endereco']}', nome_abrigo='{data['nome_abrigo']}', capacidade={data['capacidade']}, recebe_pets={data['recebe_pets']}, so_mulheres_criancas={data['so_mulheres_criancas']}, senha='{data['senha']}' WHERE id={id}"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/abrigos/<int:id>', methods=['DELETE'])
+
+@app.route("/abrigos/<int:id>", methods=["DELETE"])
 def delete_abrigo(id):
     query = f"DELETE FROM Abrigos WHERE id={id}"
     return jsonify({"query": query})
 
+
 # CRUD for Itens
-@app.route('/itens', methods=['POST'])
+@app.route("/itens", methods=["POST"])
 def create_item():
     data = request.json
-    query = f"INSERT INTO Itens (nome_item, categoria, perecivel, quantidade, id_abrigo) VALUES ('{data['nome_item']}', '{data['categoria']}', {data['perecivel']}, {data['quantidade']}, {data['id_abrigo']})"
+    query = f"INSERT INTO Itens (nome_item, categoria, perecivel, quantidade, id_abrigo) VALUES ('{data['nome_item']}', '{data['categoria']}', {data['perecivel']}, {data['quantidade']}, {data['id_abrigo']})"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/itens', methods=['GET'])
+
+@app.route("/itens", methods=["GET"])
 def read_itens():
     query = "SELECT * FROM Itens"
     return jsonify({"query": query})
 
-@app.route('/itens/<int:id>', methods=['PUT'])
+
+@app.route("/itens/<int:id>", methods=["PUT"])
 def update_item(id):
     data = request.json
-    query = f"UPDATE Itens SET nome_item='{data['nome_item']}', categoria='{data['categoria']}', perecivel={data['perecivel']}, quantidade={data['quantidade']}, id_abrigo={data['id_abrigo']} WHERE id={id}"
+    query = f"UPDATE Itens SET nome_item='{data['nome_item']}', categoria='{data['categoria']}', perecivel={data['perecivel']}, quantidade={data['quantidade']}, id_abrigo={data['id_abrigo']} WHERE id={id}"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/itens/<int:id>', methods=['DELETE'])
+
+@app.route("/itens/<int:id>", methods=["DELETE"])
 def delete_item(id):
     query = f"DELETE FROM Itens WHERE id={id}"
     return jsonify({"query": query})
 
+
 # CRUD for Transacoes
-@app.route('/transacoes', methods=['POST'])
+@app.route("/transacoes", methods=["POST"])
 def create_transacao():
     data = request.json
-    query = f"INSERT INTO Transacoes (id_item, quantidade, id_abrigo_origem, id_abrigo_destino, status_transacao) VALUES ({data['id_item']}, {data['quantidade']}, {data['id_abrigo_origem']}, {data['id_abrigo_destino']}, '{data['status_transacao']}')"
+    query = f"INSERT INTO Transacoes (id_item, quantidade, id_abrigo_origem, id_abrigo_destino, status_transacao) VALUES ({data['id_item']}, {data['quantidade']}, {data['id_abrigo_origem']}, {data['id_abrigo_destino']}, '{data['status_transacao']}')"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/transacoes', methods=['GET'])
+
+@app.route("/transacoes", methods=["GET"])
 def read_transacoes():
     query = "SELECT * FROM Transacoes"
     return jsonify({"query": query})
 
-@app.route('/transacoes/<int:id>', methods=['PUT'])
+
+@app.route("/transacoes/<int:id>", methods=["PUT"])
 def update_transacao(id):
     data = request.json
-    query = f"UPDATE Transacoes SET id_item={data['id_item']}, quantidade={data['quantidade']}, id_abrigo_origem={data['id_abrigo_origem']}, id_abrigo_destino={data['id_abrigo_destino']}, status_transacao='{data['status_transacao']}' WHERE id={id}"
+    query = f"UPDATE Transacoes SET id_item={data['id_item']}, quantidade={data['quantidade']}, id_abrigo_origem={data['id_abrigo_origem']}, id_abrigo_destino={data['id_abrigo_destino']}, status_transacao='{data['status_transacao']}' WHERE id={id}"  # noqa: E501
     return jsonify({"query": query})
 
-@app.route('/transacoes/<int:id>', methods=['DELETE'])
+
+@app.route("/transacoes/<int:id>", methods=["DELETE"])
 def delete_transacao(id):
     query = f"DELETE FROM Transacoes WHERE id={id}"
     return jsonify({"query": query})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)
