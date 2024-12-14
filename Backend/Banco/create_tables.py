@@ -17,26 +17,28 @@ if not os.path.exists(instance_dir):
 app = Flask(
     __name__,
     instance_path=instance_dir,  # Caminho absoluto para a pasta instance
-    instance_relative_config=True
+    instance_relative_config=True,
 )
 
 # Configuração da pasta flask_session dentro de "Backend/Banco"
-session_dir = os.path.join(base_dir, 'custom_sessions')
+session_dir = os.path.join(base_dir, "custom_sessions")
 if not os.path.exists(session_dir):
     os.makedirs(session_dir)
 
-app.config['SESSION_FILE_DIR'] = session_dir
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SECRET_KEY'] = 'sua_chave_secreta'
+app.config["SESSION_FILE_DIR"] = session_dir
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_USE_SIGNER"] = True
+app.config["SECRET_KEY"] = "sua_chave_secreta"
 
 # Configuração do banco de dados SQLite na pasta instance dentro de "Backend/Banco"
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(instance_dir, 'shelter.db')}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"sqlite:///{os.path.join(instance_dir, 'shelter.db')}"
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Carregar configurações adicionais da pasta instance (opcional)
-app.config.from_pyfile('config.py', silent=True)
+app.config.from_pyfile("config.py", silent=True)
 
 # Inicializar Flask-Session
 Session(app)
@@ -48,7 +50,7 @@ db = SQLAlchemy(app)
 
 
 class Shelter(db.Model):
-    __tablename__ = 'shelter'
+    __tablename__ = "shelter"
     id = db.Column(db.Integer, primary_key=True)
     admin_name = db.Column(db.String(100), nullable=False)
     admin_cpf = db.Column(db.String(11), nullable=False, unique=True)
@@ -66,25 +68,26 @@ class Shelter(db.Model):
 
 
 class Item(db.Model):
-    __tablename__ = 'item'
+    __tablename__ = "item"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(50), nullable=False)
     perishable = db.Column(db.Boolean, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    shelter_id = db.Column(db.Integer, db.ForeignKey(
-        'shelter.id'), nullable=False)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
 
 
 class Transaction(db.Model):
-    __tablename__ = 'transaction'
+    __tablename__ = "transaction"
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     origin_shelter_id = db.Column(
-        db.Integer, db.ForeignKey('shelter.id'), nullable=False)
+        db.Integer, db.ForeignKey("shelter.id"), nullable=False
+    )
     destination_shelter_id = db.Column(
-        db.Integer, db.ForeignKey('shelter.id'), nullable=False)
+        db.Integer, db.ForeignKey("shelter.id"), nullable=False
+    )
     status = db.Column(db.String(20), nullable=False)
 
 
