@@ -2,10 +2,20 @@ import os
 
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
+from sqlalchemy import MetaData, create_engine
 
 app = Flask(__name__)
 CORS(app, origins='*')
 app.secret_key = os.getenv('CHAVE') or 'bad-secret-key'
+
+DATABASE_URI = 'sqlite:///Backend/Banco/instance/shelter.db'
+engine = create_engine(DATABASE_URI)
+metadata = MetaData()
+
+metadata.reflect(bind=engine)
+
+shelter_table = metadata.tables['shelter']  
+item_table = metadata.tables['item']       
 
 #    |-LOGIN-|
 @app.route('/login', methods=['POST'])
@@ -17,7 +27,7 @@ def login():
     if not email or not senha:
         return jsonify({"logado": False, "message": "Campos de Email e senha são obrigatórios"}), 400
     
-    user_id = bussca_userid_no_banco(email, senha)
+    user_id = busca_userid_no_banco(email, senha)
     if user_id:
         session['user_id'] = user_id
         return jsonify({'logado': True})
@@ -43,7 +53,7 @@ def sessao():
 
 
 #    |-TODO: Alterar quando tivermos o banco-|
-def bussca_userid_no_banco(email, senha):
+def busca_userid_no_banco(email, senha):
     exemplo_usuarios = {
         "usuario1@pds2.com": {"id": 1, "password": "senha123"},
         "usuario2@pds2.com": {"id": 2, "password": "senha456"},
@@ -52,6 +62,74 @@ def bussca_userid_no_banco(email, senha):
     if usuario and usuario["password"] == senha:
         return usuario["id"]
     return None
+
+#   |--|
+
+#    |-Listar infos dos abrigos-|
+@app.route('/listar_abrigos', methods=['GET'])
+def listar_abrigos():
+    try:
+        connection = engine.connect()
+        query = shelter_table.select()
+        result = connection.execute(query)
+
+        abrigos_lista = [
+            {
+                "id": row.id,
+                "admin_name": row.admin_name,
+                "admin_cpf": row.admin_cpf,
+                "email": row.email,
+                "phone": row.phone,
+                "address_street": row.address_street,
+                "address_neighborhood": row.address_neighborhood,
+                "address_city": row.address_city,
+                "address_state": row.address_state,
+                "shelter_name": row.shelter_name,
+                "capacity": row.capacity,
+                "accepts_pets": row.accepts_pets,
+                "women_and_children_only": row.women_and_children_only
+            }
+            for row in result
+        ]
+
+        connection.close()
+        return jsonify(abrigos_lista), 200
+
+    except Exception as e:
+        return jsonify({"error": "Erro ao listar abrigos", "message": str(e)}), 500
+
+#    |-Listar itens de um abrigo-|
+@app.route('/listar_itens', methods=['GET'])
+def listar_itens():
+    try:
+        user_id = session.get('user_id')
+        # user_id = 1
+        if not user_id:
+            return jsonify({"error": "User não autenticado."}), 401
+
+        connection = engine.connect()
+        query = item_table.select().where(item_table.c.shelter_id == user_id)
+        result = connection.execute(query)
+
+        itens_lista = [
+            {
+                "id": row.id,
+                "name": row.name,
+                "category": row.category,
+                "perishable": row.perishable,
+                "quantity": row.quantity,
+                "shelter_id": row.shelter_id
+            }
+            for row in result
+        ]
+
+        connection.close()
+        return jsonify(itens_lista), 200
+
+    except Exception as e:
+        return jsonify({"error": "Erro ao listar itens", "message": str(e)}), 500
+
+
 
 #   |-CRUD-|
 
