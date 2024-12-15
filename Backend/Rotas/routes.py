@@ -307,5 +307,24 @@ def create_transacao():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/transacoes", methods=["GET"])
+def read_transacoes():
+    query = "SELECT * FROM Transacoes"
+    return jsonify({"query": query})
+
+
+@app.route("/transacoes/<int:id>", methods=["PUT"])
+def update_transacao(id):
+    data = request.json
+    query = f"UPDATE Transacoes SET id_item={data['id_item']}, quantidade={data['quantidade']}, id_abrigo_origem={data['id_abrigo_origem']}, id_abrigo_destino={data['id_abrigo_destino']}, status_transacao='{data['status_transacao']}' WHERE id={id}"  # noqa: E501
+    return jsonify({"query": query})
+
+
+@app.route("/transacoes/<int:id>", methods=["DELETE"])
+def delete_transacao(id):
+    query = f"DELETE FROM Transacoes WHERE id={id}"
+    return jsonify({"query": query})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
