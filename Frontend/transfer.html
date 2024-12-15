@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
+    <title>Adicionar Itens</title>
+</head>
+<body>
+    <div class="main-home">
+        <div class="header-home">
+            <h1>Visualizar Transferências</h1>
+        </div>
+        
+            <table id="transfersTable" class="items-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Item</th>
+                        <th>Quantidade</th>
+                        <th>Abrigo de Origem</th>
+                        <th>ID de Origem</th>
+                        <th>Abrigo de Destino</th>
+                        <th>ID de Destino</th>
+                        <th>Status da Transferência</th>
+                    </tr>
+                </thead>
+                <tbody style="text-align: center;"></tbody>
+            </table>
+        
+        <div class="shelter-info" style="width: 40%">
+            <h2>Criar Transferência</h2>
+            <form id="createTransferForm" method="POST" style="align-items: center;">
+                <div class="textfield">
+                    <label for="item">Item</label>
+                    <select name="item" id="itemSelect" class="select-item-type" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="textfield">
+                    <label for="transferQuantity">Quantidade</label>
+                    <input type="number" name="transferQuantity" placeholder="Digite a quantidade" min=0 required>
+                </div>
+                <div class="textfield">
+                    <label for="destinationShelter">Abrigo de Destino</label>
+                    <select name="destinationShelter" id="destinationShelterSelect" class="select-item-type" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div style="margin-top: 20px">
+                    <button type="submit" id="create-transfer-button" class="btn-action">Criar Transferência</button>
+                </div>
+            </form>
+        </div>
+    </div>
+        
+        
+        <script>
+            document.getElementById('createTransferForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const form = event.target;
+                const item = form.item.value;
+                const transferQuantity = form.transferQuantity.value;
+                const destinationShelter = form.destinationShelter.value;
+        
+                // Assuming origin shelter details are known
+                const originShelterName = "Abrigo A";
+                const originShelterId = "123";
+                const destinationShelterName = destinationShelter.split('-')[0];
+                const destinationShelterId = destinationShelter.split('-')[1];
+                const transferStatus = "Pendente";
+        
+                const table = document.getElementById('transfersTable').getElementsByTagName('tbody')[0];
+                const newRow = table.insertRow();
+                newRow.insertCell(0).textContent = item;
+                newRow.insertCell(1).textContent = transferQuantity;
+                newRow.insertCell(2).textContent = originShelterName;
+                newRow.insertCell(3).textContent = originShelterId;
+                newRow.insertCell(4).textContent = destinationShelterName;
+                newRow.insertCell(5).textContent = destinationShelterId;
+                newRow.insertCell(6).textContent = transferStatus;
+        
+                form.reset();
+            });
+        
+            // Populate item and shelter options dynamically (example data)
+            const items = ["Item 1", "Item 2", "Item 3"];
+            const shelters = ["Abrigo B-456", "Abrigo C-789"];
+        
+            const itemSelect = document.getElementById('itemSelect');
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                itemSelect.appendChild(option);
+            });
+        
+            const destinationShelterSelect = document.getElementById('destinationShelterSelect');
+            shelters.forEach(shelter => {
+                const option = document.createElement('option');
+                option.value = shelter;
+                option.textContent = shelter;
+                destinationShelterSelect.appendChild(option);
+            });
+        </script>
+
+</body>
+</html>

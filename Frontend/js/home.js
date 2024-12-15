@@ -136,3 +136,11 @@ viewButton.addEventListener('click', () => {
     document.querySelector('.content-home').style.flexDirection = 'row';
   }
 });
+
+addItemButton.addEventListener('click', () => {
+  window.location.href = 'items.html';
+});
+
+transferButton.addEventListener('click', () => {
+  window.location.href = 'transfer.html';
+});
