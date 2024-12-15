@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
+    <title>Adicionar Itens</title>
+</head>
+<body>
+    <div class="main-home">
+        <div class="header-home">
+            <h1>Adicione items</h1>
+        </div>
+        
+        <div class="shelter-info" style="width: fit-content;">
+            <div class="card-add-item">
+                <form id="addItemForm" method="POST" style="align-items: center;">
+                    <div class="textfield">
+                        <label for="itemName">Nome do Item</label>
+                        <input type="text" name="itemName" placeholder="Digite o nome do item" required>
+                    </div>
+                    <div class="textfield">
+                        <label for="category">Categoria</label>
+                        <select name="category" class="select-item-type" required>
+                            <option value="food">Comida</option>
+                            <option value="drink">Bebida</option>
+                            <option value="clothes">Roupas</option>
+                        </select>
+                    </div>
+                    <div class="textfield">
+                        <label for="quantity">Quantidade</label>
+                        <input type="number" name="quantity" placeholder="Digite a quantidade" min=0 required>
+                    </div>
+                    <div class="textfield" style="display: flex; align-items: center;"></div>
+                        <label for="perishable" style="margin-right: 10px;">Perecível</label>
+                        <input type="checkbox" name="perishable">
+                    </div>
+                    <div style="margin-top: 20px">
+                        <button type="submit" id="add-item-button" class="btn-action">Adicionar</button>
+                    </div>
+                </form>
+                <table id="itemsTable" class="items-table">
+                    <thead>
+                        <tr>
+                            <th style="padding-right: 50px;">Nome</th>
+                            <th style="padding-right: 50px;">Categoria</th>
+                            <th style="padding-right: 50px;">Quantidade</th>
+                            <th style="padding-right: 50px;">Perecível</th>
+                        </tr>
+                    </thead>
+                    <tbody style="text-align: center;"></tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('addItemForm').addEventListener('submit', function(event) {
+            console.log("submit");
+            event.preventDefault();
+            const form = event.target;
+            const itemName = form.itemName.value;
+            const category = form.category.value;
+            const quantity = form.quantity.value;
+            const perishable = form.perishable.checked ? 'Sim' : 'Não';
+
+            const table = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.insertCell(0).textContent = itemName;
+            newRow.insertCell(1).textContent = category;
+            newRow.insertCell(2).textContent = quantity;
+            newRow.insertCell(3).textContent = perishable;
+
+            form.reset();
+        });
+    </script>
+</body>
+</html>
