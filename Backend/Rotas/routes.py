@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from sqlalchemy import MetaData, create_engine, Table, insert, update, delete, select
+from sqlalchemy import MetaData, create_engine, insert, update, delete, select
 from sqlalchemy import text
 
 
@@ -10,7 +10,7 @@ CORS(app, origins="*")
 app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
 # Configuração do banco de dados
-DATABASE_URI = "sqlite:///Banco/instance/shelter.db"
+DATABASE_URI = "sqlite:///Backend/Banco/instance/shelter.db"
 engine = create_engine(DATABASE_URI)
 metadata = MetaData()
 
@@ -66,37 +66,44 @@ def create_abrigo():
 
     # Verificar se o e-mail já existe no banco de dados
     with engine.connect() as connection:
-        query = select(shelter_table.c.id).where(shelter_table.c.email == data.get("email"))
+        query = select(shelter_table.c.id).where(
+            shelter_table.c.email == data.get("email")
+        )
         result = connection.execute(query).fetchone()
         if result:
             return jsonify({"error": "E-mail já registrado"}), 400
 
-    query = text(""" 
-    INSERT INTO shelter (admin_name, admin_cpf, email, password, phone, address_street, 
-        address_neighborhood, address_city, address_state, shelter_name, capacity, 
+    query = text(
+        """
+    INSERT INTO shelter (admin_name, admin_cpf, email, password, phone, address_street,
+        address_neighborhood, address_city, address_state, shelter_name, capacity,
         accepts_pets, women_and_children_only)
-    VALUES (:admin_name, :admin_cpf, :email, :password, :phone, :address_street, 
-        :address_neighborhood, :address_city, :address_state, :shelter_name, :capacity, 
+    VALUES (:admin_name, :admin_cpf, :email, :password, :phone, :address_street,
+        :address_neighborhood, :address_city, :address_state, :shelter_name, :capacity,
         :accepts_pets, :women_and_children_only)
-    """)
+    """
+    )
 
     try:
         with engine.connect() as connection:
-            connection.execute(query, {
-                "admin_name": data['admin_name'],
-                "admin_cpf": data['admin_cpf'],
-                "email": data['email'],
-                "password": data['password'],
-                "phone": data['phone'],
-                "address_street": data['address_street'],
-                "address_neighborhood": data['address_neighborhood'],
-                "address_city": data['address_city'],
-                "address_state": data['address_state'],
-                "shelter_name": data['shelter_name'],
-                "capacity": data['capacity'],
-                "accepts_pets": data['accepts_pets'],
-                "women_and_children_only": data['women_and_children_only']
-            })
+            connection.execute(
+                query,
+                {
+                    "admin_name": data["admin_name"],
+                    "admin_cpf": data["admin_cpf"],
+                    "email": data["email"],
+                    "password": data["password"],
+                    "phone": data["phone"],
+                    "address_street": data["address_street"],
+                    "address_neighborhood": data["address_neighborhood"],
+                    "address_city": data["address_city"],
+                    "address_state": data["address_state"],
+                    "shelter_name": data["shelter_name"],
+                    "capacity": data["capacity"],
+                    "accepts_pets": data["accepts_pets"],
+                    "women_and_children_only": data["women_and_children_only"],
+                },
+            )
 
             # Confirmar a transação para persistir os dados no banco
             connection.commit()
@@ -119,8 +126,10 @@ def read_abrigo(id):
             result = connection.execute(query).fetchone()
 
             if result:
-                abrigo = {column: value for column, value in zip(
-                    shelter_table.columns.keys(), result)}
+                abrigo = {
+                    column: value
+                    for column, value in zip(shelter_table.columns.keys(), result)
+                }
                 return jsonify(abrigo), 200
             else:
                 return jsonify({"error": "Abrigo não encontrado"}), 404
@@ -138,31 +147,37 @@ def update_abrigo(id):
     try:
         with engine.connect() as connection:
             with connection.begin():
-                query = text("""
+                query = text(
+                    """
                     UPDATE shelter
                     SET admin_name=:admin_name, admin_cpf=:admin_cpf,
                         email=:email, phone=:phone, address_street=:address_street,
                         address_neighborhood=:address_neighborhood, address_city=:address_city,
                         address_state=:address_state, shelter_name=:shelter_name,
-                        capacity=:capacity, accepts_pets=:accepts_pets, women_and_children_only=:women_and_children_only
+                        capacity=:capacity, accepts_pets=:accepts_pets,
+                        women_and_children_only=:women_and_children_only
                     WHERE id=:id
-                """)
+                """
+                )
 
-                connection.execute(query, {
-                    "admin_name": data['admin_name'],
-                    "admin_cpf": data['admin_cpf'],
-                    "email": data['email'],
-                    "phone": data['phone'],
-                    "address_street": data['address_street'],
-                    "address_neighborhood": data['address_neighborhood'],
-                    "address_city": data['address_city'],
-                    "address_state": data['address_state'],
-                    "shelter_name": data['shelter_name'],
-                    "capacity": data['capacity'],
-                    "accepts_pets": data['accepts_pets'],
-                    "women_and_children_only": data['women_and_children_only'],
-                    "id": id
-                })
+                connection.execute(
+                    query,
+                    {
+                        "admin_name": data["admin_name"],
+                        "admin_cpf": data["admin_cpf"],
+                        "email": data["email"],
+                        "phone": data["phone"],
+                        "address_street": data["address_street"],
+                        "address_neighborhood": data["address_neighborhood"],
+                        "address_city": data["address_city"],
+                        "address_state": data["address_state"],
+                        "shelter_name": data["shelter_name"],
+                        "capacity": data["capacity"],
+                        "accepts_pets": data["accepts_pets"],
+                        "women_and_children_only": data["women_and_children_only"],
+                        "id": id,
+                    },
+                )
 
             return jsonify({"message": "Abrigo atualizado com sucesso"}), 200
     except Exception as e:
@@ -191,11 +206,11 @@ def create_item():
     try:
         # Usando SQLAlchemy para garantir que os dados sejam inseridos corretamente
         query = insert(item_table).values(
-            name=data['name'],
-            category=data['category'],
-            perishable=data['perishable'],
-            quantity=data['quantity'],
-            shelter_id=data['shelter_id']
+            name=data["name"],
+            category=data["category"],
+            perishable=data["perishable"],
+            quantity=data["quantity"],
+            shelter_id=data["shelter_id"],
         )
 
         # Conectar e executar a query
@@ -208,7 +223,6 @@ def create_item():
         return jsonify({"error": str(e)}), 500
 
 
-
 @app.route("/itens/<int:id>", methods=["GET"])
 def read_item(id):
     try:
@@ -217,8 +231,10 @@ def read_item(id):
             result = connection.execute(query).fetchone()
 
             if result:
-                item = {column: value for column, value in zip(
-                    item_table.columns.keys(), result)}
+                item = {
+                    column: value
+                    for column, value in zip(item_table.columns.keys(), result)
+                }
                 return jsonify(item), 200
             else:
                 return jsonify({"error": "Item não encontrado"}), 404
@@ -250,7 +266,6 @@ def update_item(id):
         return jsonify({"error": str(e)}), 500
 
 
-
 @app.route("/itens/<int:id>", methods=["DELETE"])
 def delete_item(id):
     try:
@@ -271,17 +286,20 @@ def create_transacao():
         query = """
         INSERT INTO transacoes (id_item, quantidade, id_abrigo_origem, id_abrigo_destino, status_transacao)
         VALUES (:id_item, :quantidade, :id_abrigo_origem, :id_abrigo_destino, :status_transacao)
-        """
+        """    # noqa: E501
 
         # Conectando ao banco e executando a query de inserção
         with engine.connect() as connection:
-            connection.execute(text(query), {
-                "id_item": data['id_item'],
-                "quantidade": data['quantidade'],
-                "id_abrigo_origem": data['id_abrigo_origem'],
-                "id_abrigo_destino": data['id_abrigo_destino'],
-                "status_transacao": data['status_transacao']
-            })
+            connection.execute(
+                text(query),
+                {
+                    "id_item": data["id_item"],
+                    "quantidade": data["quantidade"],
+                    "id_abrigo_origem": data["id_abrigo_origem"],
+                    "id_abrigo_destino": data["id_abrigo_destino"],
+                    "status_transacao": data["status_transacao"],
+                },
+            )
 
         return jsonify({"message": "Transação criada com sucesso"}), 201
 
