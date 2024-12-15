@@ -11,10 +11,29 @@ class TestAuthRoutes(unittest.TestCase):
         self.client = app.test_client()
         self.client.testing = True
 
-    def test_login_valid_credentials(self):
+    def testssss_login_valid_credentials(self):
+        data = {
+            "admin_name": "John Doe",
+            "admin_cpf": "12345678901",
+            "email": "john.doe@example.com",
+            "password": "securepassword",
+            "phone": "555-1234",
+            "address_street": "123 Main St",
+            "address_neighborhood": "Downtown",
+            "address_city": "Metropolis",
+            "address_state": "NY",
+            "shelter_name": "Safe Haven",
+            "capacity": 50,
+            "accepts_pets": True,
+            "women_and_children_only": False,
+        }
+        """"Cria o abrigo para o teste"""
+        self.client.post("/abrigos", json=data)
+
         """Teste de login com credenciais válidas"""
         response = self.client.post(
-            "/login", json={"email": "usuario1@pds2.com", "password": "senha123"}
+            "/login",
+            json={"email": "john.doe@example.com", "password": "securepassword"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json["logado"])

@@ -78,9 +78,11 @@ class Item(db.Model):
 
 
 class Transaction(db.Model):
-    __tablename__ = "transaction"
+    __tablename__ = "transacoes"  # Certifique-se de que o nome da tabela está correto
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
+    item_id = db.Column(
+        db.Integer, db.ForeignKey("item.id"), nullable=False
+    )  # id_item mapeado corretamente
     quantity = db.Column(db.Integer, nullable=False)
     origin_shelter_id = db.Column(
         db.Integer, db.ForeignKey("shelter.id"), nullable=False
