@@ -49,15 +49,15 @@ def login():
 def logout():
     session.pop("user_id", None)
     return jsonify({"logado": False}), 200
-    
+
 
 @app.route('/register', methods=['POST'])
 def register():
     if request.method == 'POST':
         try:
             data = request.json
-            query = text("""  
-                INSERT INTO shelter (
+            query = text("""
+                    INSERT INTO shelter (
                     admin_name, admin_cpf, email, phone,
                     address_street, address_neighborhood, address_city, address_state,
                     shelter_name, capacity, accepts_pets, women_and_children_only, password
@@ -86,7 +86,7 @@ def register():
 
             return {"message": "Abrigo registrado com sucesso!"}, 200
         except Exception as e:
-            print(e)  
+            print(e)
             return {"error": "Erro ao registrar abrigo", "details": str(e)}, 500
 
 
