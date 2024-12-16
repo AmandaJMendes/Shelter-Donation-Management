@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 
 app = Flask(__name__)
-CORS(app, origins="*")
+CORS(app, supports_credentials=True, origins=["http://192.168.0.215:5000"])
 app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
 # Configuração do banco de dados
@@ -49,6 +49,51 @@ def login():
 def logout():
     session.pop("user_id", None)
     return jsonify({"logado": False}), 200
+
+from sqlalchemy import text
+
+@app.route('/register', methods=['POST'])
+def register():
+    if request.method == 'POST':
+        try:
+            data = request.json  
+            
+            # Query corrigida com text()
+            query = text("""
+                INSERT INTO shelter (
+                    admin_name, admin_cpf, email, phone,
+                    address_street, address_neighborhood, address_city, address_state,
+                    shelter_name, capacity, accepts_pets, women_and_children_only, password
+                ) VALUES (
+                    :admin_name, :admin_cpf, :email, :phone,
+                    :address_street, :address_neighborhood, :address_city, :address_state,
+                    :shelter_name, :capacity, :accepts_pets, :women_and_children_only, :password
+                )
+            """)
+            
+            # Abre uma conexão usando engine.connect()
+            with engine.connect() as connection:
+                connection.execute(query, {
+                    "admin_name": data['admin_name'],
+                    "admin_cpf": data['admin_cpf'],
+                    "email": data['email'],
+                    "phone": data['phone'],
+                    "address_street": data['address_street'],
+                    "address_neighborhood": data['address_neighborhood'],
+                    "address_city": data['address_city'],
+                    "address_state": data['address_state'],
+                    "shelter_name": data['shelter_name'],
+                    "capacity": data['capacity'],
+                    "accepts_pets": data['accepts_pets'],
+                    "women_and_children_only": data['women_and_children_only'],
+                    "password": data['password']
+                })
+
+            return {"message": "Abrigo registrado com sucesso!"}, 200
+        
+        except Exception as e:
+            print(e)  
+            return {"error": "Erro ao registrar abrigo", "details": str(e)}, 500
 
 
 @app.route("/sessao", methods=["GET"])

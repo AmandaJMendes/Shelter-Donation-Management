@@ -15,16 +15,17 @@
         <div class="right-login">
             <div class="card-login">
                 <h1>Login</h1>
-                <form id="loginForm" action="/login" method="POST">
+                <form id="loginForm">
                     <div class="textfield">
                         <label for="email">Email</label>
-                        <input type="email" name="email" placeholder="Digite seu email" required>
+                        <input type="email" name="email" id="email" placeholder="Digite seu email" required>
                     </div>
                     <div class="textfield">
                         <label for="password">Senha</label>
-                        <input type="password" name="password" placeholder="Digite sua senha" required>
+                        <input type="password" name="password" id="password" placeholder="Digite sua senha" required>
                     </div>
                     <button type="submit" class="btn-login">Login</button>
+                    <p id="loginMessage" class="message"></p>
                 </form>
                 <p class="link-register">
                     Não possui cadastro? <a href="register.html">Registre seu abrigo aqui</a>.
@@ -33,13 +34,55 @@
         </div>
     </div>
     <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e) {
-            const email = this.email.value.trim();
-            const password = this.password.value.trim();
-            
+        // Lógica de integração com a rota de login
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+            e.preventDefault(); // Evita o reload da página
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const loginMessage = document.getElementById("loginMessage");
+
+            // Reseta a mensagem de erro/sucesso
+            loginMessage.textContent = "";
+
             if (!email || !password) {
-                e.preventDefault(); // Evita o envio do formulário
-                alert("Por favor, preencha todos os campos.");
+                loginMessage.textContent = "Por favor, preencha todos os campos.";
+                loginMessage.style.color = "red";
+                return;
+            }
+
+            try {
+                // Envia os dados para a rota /login via POST
+                const response = await fetch("http://127.0.0.1:5000/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Inclui cookies na requisição
+                    body: JSON.stringify({ email, password }),
+                });
+
+                // Interpreta a resposta do backend
+                const result = await response.json();
+
+                if (response.ok && result.logado) {
+                    // Login bem-sucedido
+                    loginMessage.textContent = "Login realizado com sucesso!";
+                    loginMessage.style.color = "green";
+
+                    // Redireciona para a página após login (ajuste conforme necessário)
+                    setTimeout(() => {
+                        window.location.href = "/dashboard.html";
+                    }, 2000);
+                } else {
+                    // Erro no login (mensagem do backend)
+                    loginMessage.textContent = result.message || "Erro ao realizar o login.";
+                    loginMessage.style.color = "red";
+                }
+            } catch (error) {
+                // Erro ao se comunicar com o servidor
+                loginMessage.textContent = "Erro ao conectar ao servidor.";
+                loginMessage.style.color = "red";
             }
         });
     </script>
