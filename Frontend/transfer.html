@@ -55,7 +55,29 @@
         
         
         <script>
-            document.getElementById('createTransferForm').addEventListener('submit', function(event) {
+            window.onload = async function() {
+                // Current shelter id = localStorage.getItem(“user_id”)
+                const items = [] // Buscar itens da API (http://127.0.0.1:5000/itens/shelter/<id>)
+                const shelters = [] // Buscar abrigos da API, retirando o abrigo atual da lista de destino (http://127.0.0.1:5000/abrigos)
+            
+                const itemSelect = document.getElementById('itemSelect');
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    itemSelect.appendChild(option);
+                });
+            
+                const destinationShelterSelect = document.getElementById('destinationShelterSelect');
+                shelters.forEach(shelter => {
+                    const option = document.createElement('option');
+                    option.value = shelter.id+"-"+shelter.shelter_name;
+                    option.textContent = shelter.shelter_name;
+                    destinationShelterSelect.appendChild(option);
+                });
+            }
+
+            document.getElementById('createTransferForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const form = event.target;
                 const item = form.item.value;
@@ -63,11 +85,10 @@
                 const destinationShelter = form.destinationShelter.value;
         
                 // Assuming origin shelter details are known
-                const originShelterName = "Abrigo A";
-                const originShelterId = "123";
-                const destinationShelterName = destinationShelter.split('-')[0];
-                const destinationShelterId = destinationShelter.split('-')[1];
-                const transferStatus = "Pendente";
+                const originShelterName = localStorage.getItem("shelter_name");
+                const originShelterId = localStorage.getItem("user_id");
+                const destinationShelterId = destinationShelter.split('-')[0];
+                const destinationShelterName = destinationShelter.split('-')[1];
         
                 const table = document.getElementById('transfersTable').getElementsByTagName('tbody')[0];
                 const newRow = table.insertRow();
@@ -77,29 +98,23 @@
                 newRow.insertCell(3).textContent = originShelterId;
                 newRow.insertCell(4).textContent = destinationShelterName;
                 newRow.insertCell(5).textContent = destinationShelterId;
-                newRow.insertCell(6).textContent = transferStatus;
+                newRow.insertCell(6).textContent = "Pendente";
+
+                const response = await fetch("http://127.0.0.1:5000/itens", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Inclui cookies na requisição
+                    body: JSON.stringify({ 
+                        item_id: item,
+                        quantity: transferQuantity,
+                        id_abrigo_origem: originShelterId,
+                        id_abrigo_destino: destinationShelterId,
+                    }),
+            });
         
                 form.reset();
-            });
-        
-            // Populate item and shelter options dynamically (example data)
-            const items = ["Item 1", "Item 2", "Item 3"];
-            const shelters = ["Abrigo B-456", "Abrigo C-789"];
-        
-            const itemSelect = document.getElementById('itemSelect');
-            items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                itemSelect.appendChild(option);
-            });
-        
-            const destinationShelterSelect = document.getElementById('destinationShelterSelect');
-            shelters.forEach(shelter => {
-                const option = document.createElement('option');
-                option.value = shelter;
-                option.textContent = shelter;
-                destinationShelterSelect.appendChild(option);
             });
         </script>
 
