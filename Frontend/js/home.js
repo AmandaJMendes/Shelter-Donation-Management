@@ -1,12 +1,18 @@
 //--- Dados dummy dos abrigos
-const shelters = [
-  { id: 'abrigo1', name: 'Abrigo Esperança', email: 'esperanca@mail.com', phone: '1234-5678', address: 'Rua da Paz, 123', capacity: 50, pets: 'Sim', womenChildren: 'Sim' },
-  { id: 'abrigo2', name: 'Lar dos Anjos', email: 'anjos@mail.com', phone: '2345-6789', address: 'Avenida Harmonia, 456', capacity: 30, pets: 'Não', womenChildren: 'Não' },
-  { id: 'abrigo3', name: 'Refúgio da Paz', email: 'refugio@mail.com', phone: '3456-7890', address: 'Praça do Amor, 789', capacity: 20, pets: 'Sim', womenChildren: 'Sim' },
-  { id: 'abrigo4', name: 'Casa da Solidariedade', email: 'solidariedade@mail.com', phone: '4567-8901', address: 'Alameda da Luz, 12', capacity: 40, pets: 'Não', womenChildren: 'Sim' },
-  { id: 'abrigo5', name: 'Lar da Harmonia', email: 'harmonia@mail.com', phone: '5678-9012', address: 'Rua Estrela, 345', capacity: 25, pets: 'Sim', womenChildren: 'Não' },
-  { id: 'abrigo6', name: 'Refúgio do Amor', email: 'amor@mail.com', phone: '6789-0123', address: 'Rua do Sol, 678', capacity: 15, pets: 'Não', womenChildren: 'Sim' },
-];
+let shelters = [];
+
+window.onload = async () => {
+  const response = await fetch('http://127.0.0.1:5000/abrigos', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  shelters = await response.json();
+};
+
+
 
 //--- Dados dummy de itens dos abrigos
 const items = {
@@ -77,7 +83,7 @@ function renderOptions(options) {
   } else {
     options.forEach(shelter => {
       const option = document.createElement('div');
-      option.textContent = shelter.name;
+      option.textContent = shelter.shelter_name;
       option.dataset.id = shelter.id;
       option.addEventListener('click', () => selectShelter(shelter));
       dropdownOptions.appendChild(option);
@@ -110,16 +116,19 @@ function renderItems(shelterId) {
 
 //--- Seleciona um abrigo
 function selectShelter(shelter) {
-  searchBar.value = shelter.name;
+  const { address_city: city,
+    address_neighborhood: neighborhood,
+    address_state: state,
+    address_street: street } = shelter;
+  searchBar.value = shelter.shelter_name;
   dropdownOptions.style.display = 'none';
   viewButton.disabled = false;
-
   shelterEmail.textContent = shelter.email;
   shelterPhone.textContent = shelter.phone;
-  shelterAddress.textContent = shelter.address;
+  shelterAddress.textContent = `${street}, ${neighborhood}, ${city} - ${state}`;
   shelterCapacity.textContent = shelter.capacity;
-  shelterPets.textContent = shelter.pets;
-  shelterWomenChildren.textContent = shelter.womenChildren;
+  shelterPets.textContent = shelter.accepts_pets ? 'Sim' : 'Não';
+  shelterWomenChildren.textContent = shelter.women_and_children_only ? 'Sim' : 'Não';
 
   renderItems(shelter.id); // Exibe os itens do abrigo selecionado
 

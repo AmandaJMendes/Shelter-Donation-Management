@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
 app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
 # Configuração do banco de dados
@@ -117,6 +117,24 @@ def create_abrigo():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route("/abrigos", methods=["GET"])
+def read_abrigos():
+    try:
+        with engine.connect() as connection:
+            query = select(shelter_table)
+            results = connection.execute(query).fetchall()
+
+            if len(results):
+                abrigos = [{
+                    column: value
+                    for column, value in zip(shelter_table.columns.keys(), result)
+                } for result in results]
+                return jsonify(abrigos), 200
+            else:
+                return jsonify({"error": "Abrigos não encontrados"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/abrigos/<int:id>", methods=["GET"])
 def read_abrigo(id):
