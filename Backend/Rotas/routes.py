@@ -6,7 +6,11 @@ from sqlalchemy import text
 
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+CORS(
+    app,
+    supports_credentials=True,
+    origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+)
 app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
 # Configuração do banco de dados
@@ -32,14 +36,23 @@ def login():
 
     try:
         with engine.connect() as connection:
-            query = select(shelter_table.c.id).where(
+            query = select(shelter_table.c.id, shelter_table.c.shelter_name).where(
                 shelter_table.c.email == email, shelter_table.c.password == password
             )
             result = connection.execute(query).fetchone()
 
             if result:
                 session["user_id"] = result[0]
-                return jsonify({"logado": True}), 200
+                return (
+                    jsonify(
+                        {
+                            "logado": True,
+                            "user_id": result[0],
+                            "shelter_name": result[1],
+                        }
+                    ),
+                    200,
+                )
             return jsonify({"logado": False, "message": "Credenciais inválidas"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -126,15 +139,19 @@ def read_abrigos():
             results = connection.execute(query).fetchall()
 
             if len(results):
-                abrigos = [{
-                    column: value
-                    for column, value in zip(shelter_table.columns.keys(), result)
-                } for result in results]
+                abrigos = [
+                    {
+                        column: value
+                        for column, value in zip(shelter_table.columns.keys(), result)
+                    }
+                    for result in results
+                ]
                 return jsonify(abrigos), 200
             else:
                 return jsonify({"error": "Abrigos não encontrados"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/abrigos/<int:id>", methods=["GET"])
 def read_abrigo(id):
@@ -259,6 +276,7 @@ def read_item(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/itens/shelter/<int:id>", methods=["GET"])
 def read_item_by_shelter(id):
     try:
@@ -267,10 +285,13 @@ def read_item_by_shelter(id):
             results = connection.execute(query).fetchall()
 
             if len(results):
-                items = [{
-                    column: value
-                    for column, value in zip(item_table.columns.keys(), result)
-                } for result in results]
+                items = [
+                    {
+                        column: value
+                        for column, value in zip(item_table.columns.keys(), result)
+                    }
+                    for result in results
+                ]
                 return jsonify(items), 200
             else:
                 return jsonify({"error": "Items não encontrados"}), 404
@@ -320,22 +341,23 @@ def create_transacao():
     data = request.json
     try:
         query = """
-        INSERT INTO transacoes (id_item, quantidade, id_abrigo_origem, id_abrigo_destino, status_transacao)
-        VALUES (:id_item, :quantidade, :id_abrigo_origem, :id_abrigo_destino, :status_transacao)
-        """    # noqa: E501
+        INSERT INTO transacoes (item_id, quantity, origin_shelter_id, destination_shelter_id, status)
+        VALUES (:item_id, :quantity, :origin_shelter_id, :destination_shelter_id, :status)
+        """  # noqa: E501
 
         # Conectando ao banco e executando a query de inserção
         with engine.connect() as connection:
             connection.execute(
                 text(query),
                 {
-                    "id_item": data["id_item"],
-                    "quantidade": data["quantidade"],
-                    "id_abrigo_origem": data["id_abrigo_origem"],
-                    "id_abrigo_destino": data["id_abrigo_destino"],
-                    "status_transacao": data["status_transacao"],
+                    "item_id": data["item_id"],
+                    "quantity": data["quantity"],
+                    "origin_shelter_id": data["origin_shelter_id"],
+                    "destination_shelter_id": data["destination_shelter_id"],
+                    "status": "Pendente",
                 },
             )
+            connection.commit()
 
         return jsonify({"message": "Transação criada com sucesso"}), 201
 
@@ -343,23 +365,137 @@ def create_transacao():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/transacoes", methods=["GET"])
-def read_transacoes():
-    query = "SELECT * FROM Transacoes"
-    return jsonify({"query": query})
+@app.route("/transacoes/<int:id>", methods=["GET"])
+def read_transacoes(id):
+    try:
+        query = """
+        SELECT * FROM transacoes WHERE origin_shelter_id = :id OR destination_shelter_id = :id
+        """
+        with engine.connect() as connection:
+            results = connection.execute(text(query), {"id": id}).fetchall()
+
+        if len(results):
+            items = [
+                {
+                    column: value
+                    for column, value in zip(transaction_table.columns.keys(), result)
+                }
+                for result in results
+            ]
+            return jsonify(items), 200
+        else:
+            return jsonify({"error": "Transações não encontradas"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/transacoes/<int:id>", methods=["PUT"])
 def update_transacao(id):
-    data = request.json
-    query = f"UPDATE Transacoes SET id_item={data['id_item']}, quantidade={data['quantidade']}, id_abrigo_origem={data['id_abrigo_origem']}, id_abrigo_destino={data['id_abrigo_destino']}, status_transacao='{data['status_transacao']}' WHERE id={id}"  # noqa: E501
-    return jsonify({"query": query})
+    try:
+        # Step 1: Fetch the item_id, quantity, and destination_shelter_id from the transaction
+        fetch_transaction_query = """
+        SELECT item_id, quantity, destination_shelter_id, status
+        FROM transacoes
+        WHERE id = :id
+        """
+
+        with engine.connect() as connection:
+            transaction_result = connection.execute(
+                text(fetch_transaction_query), {"id": id}
+            ).fetchone()
+            if not transaction_result:
+                return jsonify({"error": "Transação não encontrada"}), 404
+
+            if transaction_result[3] == "Realizada":
+                return jsonify({"error": "Transação já foi confirmada!"}), 401
+
+            item_id = transaction_result[0]
+            transaction_quantity = transaction_result[1]
+            destination_shelter_id = transaction_result[2]
+
+            # Step 2: Fetch the item from the itens table
+            fetch_item_query = """
+            SELECT id, name, category, perishable, quantity
+            FROM item
+            WHERE id = :item_id
+            """
+            item_result = connection.execute(
+                text(fetch_item_query), {"item_id": item_id}
+            ).fetchone()
+            if not item_result:
+                return jsonify({"error": "Item não encontrado"}), 404
+
+            current_quantity = item_result[4]
+
+            # Step 3: Decrease the item's quantity
+            if current_quantity < transaction_quantity:
+                return jsonify({"error": "quantity insuficiente no estoque"}), 400
+
+            updated_quantity = current_quantity - transaction_quantity
+            update_item_query = """
+            UPDATE item
+            SET quantity = :updated_quantity
+            WHERE id = :item_id
+            """
+            connection.execute(
+                text(update_item_query),
+                {"updated_quantity": updated_quantity, "item_id": item_id},
+            )
+
+            # Step 4: Create a new item in the destination shelter
+            create_item_query = """
+            INSERT INTO item (name, category, perishable, quantity, shelter_id)
+            VALUES (:name, :category, :perishable, :quantity, :shelter_id)
+            """
+            connection.execute(
+                text(create_item_query),
+                {
+                    "name": item_result[1],
+                    "category": item_result[2],
+                    "perishable": item_result[3],
+                    "quantity": transaction_quantity,
+                    "shelter_id": destination_shelter_id,
+                },
+            )
+
+            # Step 5: Update the transaction status
+            update_transaction_query = """
+            UPDATE transacoes
+            SET status = 'Realizada'
+            WHERE id = :id
+            """
+            update_result = connection.execute(
+                text(update_transaction_query), {"id": id}
+            )
+            connection.commit()
+
+        if update_result.rowcount > 0:
+            return jsonify({"message": "Transação realizada com sucesso"}), 200
+        else:
+            return jsonify({"error": "Falha ao atualizar a transação"}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/transacoes/<int:id>", methods=["DELETE"])
 def delete_transacao(id):
-    query = f"DELETE FROM Transacoes WHERE id={id}"
-    return jsonify({"query": query})
+    try:
+        query = """
+        DELETE FROM transacoes WHERE id = :id
+        """
+        with engine.connect() as connection:
+            result = connection.execute(text(query), {"id": id})
+            connection.commit()
+
+        if result.rowcount > 0:  # Check if the deletion affected any rows
+            return jsonify({"message": "Transação deletada com sucesso"}), 200
+        else:
+            return jsonify({"error": "Transação não encontrada"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
