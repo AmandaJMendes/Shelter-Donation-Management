@@ -259,6 +259,24 @@ def read_item(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/itens/shelter/<int:id>", methods=["GET"])
+def read_item_by_shelter(id):
+    try:
+        with engine.connect() as connection:
+            query = select(item_table).where(item_table.c.shelter_id == id)
+            results = connection.execute(query).fetchall()
+
+            if len(results):
+                items = [{
+                    column: value
+                    for column, value in zip(item_table.columns.keys(), result)
+                } for result in results]
+                return jsonify(items), 200
+            else:
+                return jsonify({"error": "Items não encontrados"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/itens/<int:id>", methods=["PUT"])
 def update_item(id):

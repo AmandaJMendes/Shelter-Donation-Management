@@ -12,21 +12,6 @@ window.onload = async () => {
   shelters = await response.json();
 };
 
-
-
-//--- Dados dummy de itens dos abrigos
-const items = {
-  abrigo1: [
-    { name: 'Arroz', category: 'Comida', perishable: true, quantity: 50 },
-    { name: 'Feijão', category: 'Comida', perishable: true, quantity: 40 },
-  ],
-  abrigo2: [
-    { name: 'Cobertores', category: 'Vestuário', perishable: false, quantity: 20 },
-    { name: 'Fraldas', category: 'Higiene', perishable: true, quantity: 100 },
-  ],
-  abrigo3: [],
-};
-
 //--- Simula se o usuário está logado
 const isLoggedIn = false; // Alterar para false para testar comportamento sem login
 
@@ -92,11 +77,20 @@ function renderOptions(options) {
 }
 
 //--- Renderiza itens do abrigo selecionado
-function renderItems(shelterId) {
+async function renderItems(shelterId) {
   const itemsTableBody = document.querySelector('#shelter-items tbody');
   itemsTableBody.innerHTML = ''; // Limpa a tabela
 
-  const shelterItems = items[shelterId] || [];
+  const response = await fetch(`http://127.0.0.1:5000/itens/shelter/${shelterId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const items = await response.json();
+
+  const shelterItems = items || [];
   if (shelterItems.length === 0) {
     itemsTableBody.innerHTML = '<tr><td colspan="4">Nenhum item encontrado</td></tr>';
     return;
