@@ -55,21 +55,36 @@
         </div>
     </div>
     <script>
-        document.getElementById('addItemForm').addEventListener('submit', function(event) {
+        document.getElementById('addItemForm').addEventListener('submit', async function(event) {
             console.log("submit");
             event.preventDefault();
             const form = event.target;
-            const itemName = form.itemName.value;
+            const name = form.itemName.value;
             const category = form.category.value;
             const quantity = form.quantity.value;
-            const perishable = form.perishable.checked ? 'Sim' : 'Não';
+            const perishable = form.perishable.checked;
 
             const table = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
             const newRow = table.insertRow();
-            newRow.insertCell(0).textContent = itemName;
+            newRow.insertCell(0).textContent = name;
             newRow.insertCell(1).textContent = category;
             newRow.insertCell(2).textContent = quantity;
-            newRow.insertCell(3).textContent = perishable;
+            newRow.insertCell(3).textContent = form.perishable.checked ? "Sim" : "Não";
+
+            const response = await fetch("http://127.0.0.1:5000/itens", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include", // Inclui cookies na requisição
+                body: JSON.stringify({ 
+                    name,
+                    category,
+                    quantity,
+                    perishable,
+                    shelter_id: parseInt(localStorage.getItem("user_id")),
+                 }),
+            });
 
             form.reset();
         });
