@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 
 app = Flask(__name__)
-CORS(app, origins="*")
+CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 app.secret_key = os.getenv("CHAVE") or "bad-secret-key"
 
 # Configuração do banco de dados

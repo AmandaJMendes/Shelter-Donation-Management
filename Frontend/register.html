@@ -10,7 +10,7 @@
     <div class="main-login">
         <div class="card-login">
             <h1>Registrar Abrigo</h1>
-            <form id="shelterRegistrationForm" action="/shelters" method="POST">
+            <form id="shelterRegistrationForm">
                 <div class="textfield">
                     <label for="admin_name">Nome do Administrador</label>
                     <input type="text" name="admin_name" placeholder="Nome completo" required>
@@ -28,8 +28,20 @@
                     <input type="tel" name="phone" placeholder="Digite seu telefone" required pattern="\d{10,11}">
                 </div>
                 <div class="textfield">
-                    <label for="address">Endereço do Abrigo</label>
-                    <input type="text" name="address" placeholder="Rua, Bairro, Cidade, Estado" required>
+                    <label for="address_street">Rua</label>
+                    <input type="text" name="address_street" placeholder="Rua" required>
+                </div>
+                <div class="textfield">
+                    <label for="address_neighborhood">Bairro</label>
+                    <input type="text" name="address_neighborhood" placeholder="Bairro" required>
+                </div>
+                <div class="textfield">
+                    <label for="address_city">Cidade</label>
+                    <input type="text" name="address_city" placeholder="Cidade" required>
+                </div>
+                <div class="textfield">
+                    <label for="address_state">Estado</label>
+                    <input type="text" name="address_state" placeholder="UF" required maxlength="2" pattern="[A-Z]{2}">
                 </div>
                 <div class="textfield">
                     <label for="shelter_name">Nome do Abrigo</label>
@@ -43,11 +55,11 @@
                     <label>Recebe Pets?</label>
                     <div class="radio-option">
                         <label>
-                            <input type="radio" name="pets" value="yes" required>
+                            <input type="radio" name="accepts_pets" value="true" required>
                             <span>Sim</span>
                         </label>
                         <label>
-                            <input type="radio" name="pets" value="no" required>
+                            <input type="radio" name="accepts_pets" value="false" required>
                             <span>Não</span>
                         </label>
                     </div>
@@ -56,11 +68,11 @@
                     <label>Abrigo só para mulheres e crianças?</label>
                     <div class="radio-option">
                         <label>
-                            <input type="radio" name="women_children_only" value="yes" required>
+                            <input type="radio" name="women_and_children_only" value="true" required>
                             <span>Sim</span>
                         </label>
                         <label>
-                            <input type="radio" name="women_children_only" value="no" required>
+                            <input type="radio" name="women_and_children_only" value="false" required>
                             <span>Não</span>
                         </label>
                     </div>
@@ -70,22 +82,54 @@
                     <input type="password" name="password" placeholder="Crie uma senha" required minlength="6">
                 </div>
                 <button type="submit" class="btn-login">Registrar Abrigo</button>
+                <p id="registerMessage" class="message"></p>
             </form>
-            <script>
-                document.getElementById("shelterRegistrationForm").addEventListener("submit", function(e) {
-                    const cpf = this.admin_cpf.value.trim();
-                    const password = this.password.value.trim();
-                    if (!/^\d{11}$/.test(cpf)) {
-                        e.preventDefault();
-                        alert("CPF inválido. Por favor, digite 11 números.");
-                    }
-                    if (password.length < 6) {
-                        e.preventDefault();
-                        alert("A senha deve ter no mínimo 6 caracteres.");
-                    }
-                });
-            </script>
         </div>
     </div>
+
+    <script>
+        document.getElementById("shelterRegistrationForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = {
+                admin_name: document.querySelector("input[name='admin_name']").value,
+                admin_cpf: document.querySelector("input[name='admin_cpf']").value,
+                email: document.querySelector("input[name='email']").value,
+                phone: document.querySelector("input[name='phone']").value,
+                address_street: document.querySelector("input[name='address_street']").value,
+                address_neighborhood: document.querySelector("input[name='address_neighborhood']").value,
+                address_city: document.querySelector("input[name='address_city']").value,
+                address_state: document.querySelector("input[name='address_state']").value,
+                shelter_name: document.querySelector("input[name='shelter_name']").value,
+                capacity: document.querySelector("input[name='capacity']").value,
+                accepts_pets: document.querySelector("input[name='accepts_pets']:checked").value === "true",
+                women_and_children_only: document.querySelector("input[name='women_and_children_only']:checked").value === "true",
+                password: document.querySelector("input[name='password']").value,
+            };
+
+            const registerMessage = document.getElementById("registerMessage");
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/abrigos", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    registerMessage.textContent = "Cadastro realizado com sucesso!";
+                    registerMessage.style.color = "green";
+                } else {
+                    registerMessage.textContent = result.message || "Erro no cadastro.";
+                    registerMessage.style.color = "red";
+                }
+            } catch (error) {
+                registerMessage.textContent = "Erro ao conectar ao servidor.";
+                registerMessage.style.color = "red";
+            }
+        });
+    </script>
 </body>
 </html>
