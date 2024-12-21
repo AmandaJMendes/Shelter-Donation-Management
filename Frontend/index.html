@@ -69,11 +69,10 @@
                     // Login bem-sucedido
                     loginMessage.textContent = "Login realizado com sucesso!";
                     loginMessage.style.color = "green";
-
-                    // Redireciona para a página após login (ajuste conforme necessário)
-                    setTimeout(() => {
-                        window.location.href = "/dashboard.html";
-                    }, 2000);
+                    
+                    localStorage.setItem("user_id", result.user_id);
+                    localStorage.setItem("shelter_name", result.shelter_name);
+                    window.location.href = "/home.html";
                 } else {
                     // Erro no login (mensagem do backend)
                     loginMessage.textContent = result.message || "Erro ao realizar o login.";
