@@ -13,7 +13,7 @@ window.onload = async () => {
 };
 
 //--- Simula se o usuário está logado
-const isLoggedIn = false; // Alterar para false para testar comportamento sem login
+const loggedUserId = parseInt(localStorage.getItem('user_id')); // Alterar para false para testar comportamento sem login
 
 //--- Seletores do DOM
 const searchBar = document.getElementById('search-bar');
@@ -127,8 +127,8 @@ function selectShelter(shelter) {
   renderItems(shelter.id); // Exibe os itens do abrigo selecionado
 
   // Habilita botões se o usuário estiver logado
-  addItemButton.disabled = !isLoggedIn;
-  transferButton.disabled = !isLoggedIn;
+  addItemButton.disabled = loggedUserId !== shelter.id;
+  transferButton.disabled = loggedUserId !== shelter.id;
 }
 
 //--- Exibe o bloco de informação após a primeira pesquisa
