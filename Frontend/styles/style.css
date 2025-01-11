@@ -7,6 +7,18 @@ body {
 
 body * {
     box-sizing: border-box;
+    color: #f0ffffde;
+}
+
+/* Navigation to login page */
+.nav-home{
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    text-decoration: none;
+    background: #41355f;
+    padding: 12px 10px;
+    border-radius: 6px;
 }
 
 /* Background e layout principal */

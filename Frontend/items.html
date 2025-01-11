@@ -7,6 +7,7 @@
     <title>Adicionar Itens</title>
 </head>
 <body>
+    <a class="nav-home" href="home.html">Voltar para home</a>
     <div class="main-home">
         <div class="header-home">
             <h1>Adicione items</h1>
@@ -55,6 +56,27 @@
         </div>
     </div>
     <script>
+        window.onload = async function() {
+            const response = await fetch(`http://127.0.0.1:5000/itens/shelter/${localStorage.getItem("user_id")}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include", // Inclui cookies na requisição
+            });
+            
+            const table = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
+            
+            const data = await response.json();
+            data.forEach(element => {
+                const newRow = table.insertRow();
+                newRow.insertCell(0).textContent = element.name;
+                newRow.insertCell(1).textContent = element.category;
+                newRow.insertCell(2).textContent = element.quantity;
+                newRow.insertCell(3).textContent = element.perishable ? "Sim" : "Não";
+            });
+        };
+
         document.getElementById('addItemForm').addEventListener('submit', async function(event) {
             console.log("submit");
             event.preventDefault();

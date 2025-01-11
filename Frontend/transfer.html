@@ -7,6 +7,7 @@
     <title>Adicionar Itens</title>
 </head>
 <body>
+    <a class="nav-home" href="home.html">Voltar para home</a>
     <div class="main-home">
         <div class="header-home">
             <h1>Visualizar Transferências</h1>
@@ -56,10 +57,15 @@
         
         <script>
             window.onload = async function() {
-                // Current shelter id = localStorage.getItem(“user_id”)
-                const items = [] // Buscar itens da API (http://127.0.0.1:5000/itens/shelter/<id>)
-                const shelters = [] // Buscar abrigos da API, retirando o abrigo atual da lista de destino (http://127.0.0.1:5000/abrigos)
-            
+                // Populate available shelters to transfer to
+                const response1 = await fetch(`http://127.0.0.1:5000/itens/shelter/${localStorage.getItem("user_id")}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Inclui cookies na requisição
+                });
+                const items = await response1.json();
                 const itemSelect = document.getElementById('itemSelect');
                 items.forEach(item => {
                     const option = document.createElement('option');
@@ -67,7 +73,17 @@
                     option.textContent = item.name;
                     itemSelect.appendChild(option);
                 });
-            
+                
+                
+                // Populate available itens to be transfered
+                const response2 = await fetch("http://127.0.0.1:5000/abrigos", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Inclui cookies na requisição
+                });
+                const shelters = (await response2.json()).filter(shelter => shelter.id !== parseInt(localStorage.getItem("user_id")));
                 const destinationShelterSelect = document.getElementById('destinationShelterSelect');
                 shelters.forEach(shelter => {
                     const option = document.createElement('option');
@@ -75,12 +91,68 @@
                     option.textContent = shelter.shelter_name;
                     destinationShelterSelect.appendChild(option);
                 });
+
+                
+                // Populate transactions regarding current shelter
+                const response3 = await fetch(`http://127.0.0.1:5000/transacoes/${localStorage.getItem("user_id")}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Inclui cookies na requisição
+                });
+                let transfers = await response3.json();
+                transfers = transfers.error ? [] : transfers;
+
+                const table = document.getElementById('transfersTable').getElementsByTagName('tbody')[0];
+                transfers.forEach(element => {
+                    const newRow = table.insertRow();
+                    newRow.insertCell(0).textContent = element.name;
+                    newRow.insertCell(1).textContent = element.quantity;
+                    newRow.insertCell(2).textContent = element.origin_shelter_name;
+                    newRow.insertCell(3).textContent = element.origin_shelter_id;
+                    newRow.insertCell(4).textContent = element.destination_shelter_name;
+                    newRow.insertCell(5).textContent = element.destination_shelter_id;
+                    const actionCell = newRow.insertCell(6);
+                    const actionButton = document.createElement('button');
+                    actionButton.className = 'btn-action';
+                    if(element.status === "Pendente"){
+                        if(parseInt(localStorage.getItem("user_id")) === element.origin_shelter_id){
+                            actionButton.textContent = 'Aguardando confirmação';
+                            actionButton.disabled = true;
+                        } else {
+                            actionButton.textContent = 'Confirmar';
+                            actionButton.disabled = false;
+                            actionButton.onclick = async function() {
+                                const response4 = await fetch(`http://127.0.0.1:5000/transacoes/${element.id}`, {
+                                    method: "PUT",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    credentials: "include", // Inclui cookies na requisição
+                                });
+                                const data = await response4.json();
+                                
+                                if(data.error){
+                                    alert(`Erro ao confirmar transação: ${data.error}`)
+                                } else {
+                                    actionButton.textContent = 'Confirmada';
+                                    actionButton.disabled = true;
+                                }
+                            }
+                        }
+                    } else {
+                        actionButton.textContent = 'Confirmada';
+                        actionButton.disabled = true;
+                    }
+                    actionCell.appendChild(actionButton);
+                });
             }
 
             document.getElementById('createTransferForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const form = event.target;
-                const item = form.item.value;
+                const item = form.item.options[form.item.selectedIndex].text;
                 const transferQuantity = form.transferQuantity.value;
                 const destinationShelter = form.destinationShelter.value;
         
@@ -100,17 +172,17 @@
                 newRow.insertCell(5).textContent = destinationShelterId;
                 newRow.insertCell(6).textContent = "Pendente";
 
-                const response = await fetch("http://127.0.0.1:5000/itens", {
+                const response = await fetch("http://127.0.0.1:5000/transacoes", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     credentials: "include", // Inclui cookies na requisição
                     body: JSON.stringify({ 
-                        item_id: item,
+                        item_id: form.item.value,
                         quantity: transferQuantity,
-                        id_abrigo_origem: originShelterId,
-                        id_abrigo_destino: destinationShelterId,
+                        origin_shelter_id: originShelterId,
+                        destination_shelter_id: destinationShelterId,
                     }),
             });
         

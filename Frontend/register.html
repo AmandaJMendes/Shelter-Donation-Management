@@ -7,6 +7,7 @@
     <title>Registrar Abrigo</title>
 </head>
 <body>
+    <a class="nav-home" href="home.html">Voltar para home</a>
     <div class="main-login">
         <div class="card-login">
             <h1>Registrar Abrigo</h1>
@@ -121,6 +122,7 @@
                 if (response.ok) {
                     registerMessage.textContent = "Cadastro realizado com sucesso!";
                     registerMessage.style.color = "green";
+                    window.location.href = "/home.html";
                 } else {
                     registerMessage.textContent = result.message || "Erro no cadastro.";
                     registerMessage.style.color = "red";

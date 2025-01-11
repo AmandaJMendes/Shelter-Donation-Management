@@ -369,19 +369,25 @@ def create_transacao():
 def read_transacoes(id):
     try:
         query = """
-        SELECT * FROM transacoes WHERE origin_shelter_id = :id OR destination_shelter_id = :id
+        SELECT * FROM transacoes t
+        JOIN shelter a ON t.origin_shelter_id = a.id
+        JOIN shelter b ON t.destination_shelter_id = b.id
+        JOIN item i ON t.item_id = i.id
+        WHERE origin_shelter_id = :id OR destination_shelter_id = :id
         """
         with engine.connect() as connection:
             results = connection.execute(text(query), {"id": id}).fetchall()
-
         if len(results):
             items = [
                 {
-                    column: value
-                    for column, value in zip(transaction_table.columns.keys(), result)
+                    "destination_shelter_name": result[29],
+                    "origin_shelter_name": result[15],
+                    "name": result[35],
+                    **{column: value for column, value in zip(transaction_table.columns.keys(), result)} # noqa
                 }
                 for result in results
             ]
+
             return jsonify(items), 200
         else:
             return jsonify({"error": "Transações não encontradas"}), 404
@@ -430,7 +436,7 @@ def update_transacao(id):
 
             # Step 3: Decrease the item's quantity
             if current_quantity < transaction_quantity:
-                return jsonify({"error": "quantity insuficiente no estoque"}), 400
+                return jsonify({"error": "Quantidade insuficiente no estoque"}), 400
 
             updated_quantity = current_quantity - transaction_quantity
             update_item_query = """
